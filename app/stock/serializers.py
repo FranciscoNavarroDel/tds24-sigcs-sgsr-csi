@@ -25,6 +25,7 @@ class StockSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("La combinación de institucion y medicamento ya existe.")
         return attrs
 
+
 class MovimientoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movimiento

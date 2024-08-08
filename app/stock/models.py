@@ -1,6 +1,7 @@
 from django.db import models
 from datetime import date
 from maestro.models import Medicamento, Institucion, Quiebre
+from datetime import datetime
 
 
 class Lote(models.Model):
@@ -24,6 +25,13 @@ class Consumo(models.Model):
     def __str__(self) -> str:
         return f"{self.institucion} - {self.medicamento} ({self.cantidad}) - fecha: {self.fecha}"
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        stock = Stock.objects.filter(institucion=self.institucion, medicamento=self.medicamento).first()
+        if stock:
+            stock.upd_cantidad(cantidad=-self.cantidad, fecha=self.fecha)
+            stock.save()
+
 
 class Stock(models.Model):
     institucion = models.ForeignKey(Institucion, on_delete=models.CASCADE)
@@ -41,10 +49,16 @@ class Stock(models.Model):
     def upd_has_quiebre(self):
         quiebre = Quiebre.objects.filter(institucion=self.institucion, medicamento=self.medicamento).first()
         if quiebre:
-            if self.cantidad < quiebre.cantidad:
+            if self.cantidad <= quiebre.cantidad:
                 self.has_quiebre = True
             else:
                 self.has_quiebre = False
+
+    def upd_cantidad(self, cantidad, fecha):
+
+        self.cantidad += cantidad
+        self.fecha = fecha
+        self.upd_has_quiebre()
 
 
 class Movimiento(models.Model):
@@ -54,3 +68,13 @@ class Movimiento(models.Model):
 
     def __str__(self) -> str:
         return f"{self.institucion} - {self.lote.codigo} ({self.lote.cantidad}) - fecha: {self.fecha}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        stock = Stock.objects.filter(institucion=self.institucion, medicamento=self.lote.medicamento).first()
+        if stock:
+            print("FECHA MOV : ", self.fecha)
+            print("FECHA ACTUA : ", datetime.now().date())
+            if self.lote.fecha_vencimiento > datetime.now().date():
+                stock.upd_cantidad(cantidad=self.lote.cantidad, fecha=datetime.now())
+                stock.save()

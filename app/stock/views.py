@@ -3,10 +3,109 @@ from rest_framework.exceptions import NotFound
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializers import ConsumoSerializer, MovimientoSerializer
-from .models import Movimiento, Consumo
+from .serializers import ConsumoSerializer, MovimientoSerializer, LoteSerializer
+from .models import Movimiento, Consumo, Lote, Stock
+from datetime import datetime
+from maestro.models import Medicamento, Quiebre
 
 logger = logging.getLogger("myapp")
+
+
+class ConsumoMedicamentoAPIView(APIView):
+    def get(self, request, medicamento=None):
+
+        if not medicamento:
+            medicamentos = Medicamento.objects.all()
+        else:
+            medicamentos = Medicamento.objects.filter(pk=medicamento)
+
+        data_response = {}
+
+        for medicamento in medicamentos:
+
+            consumos = Consumo.objects.filter(medicamento=medicamento.id)
+            # serializer = ConsumoSerializer(consumo, many=True)
+            if consumos:
+                data_response[medicamento.id] = {"medicamento": medicamento.id, "cantidad": 0, "consumos": []}
+                for consumo in consumos:
+                    data_response[medicamento.id]["cantidad"] += consumo.cantidad
+                    data_response[medicamento.id]["consumos"].append(
+                        {"institucion": consumo.institucion.id, "cantidad": consumo.cantidad, "fecha": consumo.fecha}
+                    )
+        print(data_response)
+        return Response(data_response, status=status.HTTP_200_OK)
+
+
+class DisponibilidadMedicamentoAPIView(APIView):
+    def get(self, request, medicamento=None):
+
+        if not medicamento:
+            medicamentos = Medicamento.objects.all()
+        else:
+            medicamentos = Medicamento.objects.filter(pk=medicamento)
+
+        data_response = {}
+
+        for medicamento in medicamentos:
+
+            stocks = Stock.objects.filter(medicamento=medicamento.id)
+            # serializer = ConsumoSerializer(consumo, many=True)
+            if stocks:
+                data_response[medicamento.id] = {"medicamento": medicamento.id, "cantidad": 0, "stocks": []}
+                for stock in stocks:
+                    data_response[medicamento.id]["cantidad"] += stock.cantidad
+                    data_response[medicamento.id]["stocks"].append({"institucion": stock.institucion.id, "cantidad": stock.cantidad})
+        print(data_response)
+        return Response(data_response, status=status.HTTP_200_OK)
+
+
+class QuiebreStockAPIView(APIView):
+    def get(self, request):
+
+        medicamentos = Medicamento.objects.all()
+        data_response = []
+
+        for medicamento in medicamentos:
+
+            stocks = Stock.objects.filter(medicamento=medicamento.id)
+            quiebre = Quiebre.objects.filter(medicamento=medicamento.id).first()
+
+            # serializer = ConsumoSerializer(consumo, many=True)
+            if stocks:
+
+                for stock in stocks:
+                    data_response.append(
+                        {
+                            "institucion": stock.institucion.id,
+                            "medicamento": medicamento.id,
+                            "stock": stock.cantidad,
+                            "quiebre": quiebre.cantidad,
+                        }
+                    )
+        print(data_response)
+        return Response(data_response, status=status.HTTP_200_OK)
+
+
+class AlertaCaducidadLoteAPIView(APIView):
+    def get(self, request):
+
+        lotes = Lote.objects.all()
+        data_response = []
+
+        for lote in lotes:
+            if lote.fecha_vencimiento <= datetime.now().date():
+                data_response.append(
+                    {
+                        "id": lote.id,
+                        "codigo": lote.codigo,
+                        "medicamento": lote.medicamento.id,
+                        "cantidad": lote.cantidad,
+                        "fecha_vencimiento": str(lote.fecha_vencimiento),
+                    }
+                )
+
+        print(data_response)
+        return Response(data_response, status=status.HTTP_200_OK)
 
 
 class MovimientoListCreateView(APIView):
@@ -40,15 +139,6 @@ class MovimientoRetrieveDestroyView(APIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Movimiento.DoesNotExist:
             raise NotFound(detail="movimiento no encontrado")
-
-
-class QuiebreStockAPIView(APIView):
-    pass
-
-
-class AlertaCaducidadLoteAPIView(APIView):
-    pass
-
 
 class MovimientoMedicamentoView(APIView):
     def get(self, request, medicamento=None):
