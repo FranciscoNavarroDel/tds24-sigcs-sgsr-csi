@@ -3,7 +3,7 @@ from rest_framework.exceptions import NotFound
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializers import ConsumoSerializer, MovimientoSerializer, LoteSerializer
+from .serializers import ConsumoSerializer, MovimientoSerializer
 from .models import Movimiento, Consumo, Lote, Stock
 from datetime import datetime
 from maestro.models import Medicamento, Quiebre
@@ -139,6 +139,7 @@ class MovimientoRetrieveDestroyView(APIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Movimiento.DoesNotExist:
             raise NotFound(detail="movimiento no encontrado")
+
 
 class MovimientoMedicamentoView(APIView):
     def get(self, request, medicamento=None):
