@@ -22,6 +22,7 @@ def test_institucion_serializer():
         "titularidad" : institucion.titularidad,
         "num_camas_uti" : institucion.num_camas_uti,
         "num_camas_uci" : institucion.num_camas_uci,
+        "factor" : institucion.factor
     }
 
     serialized_data = InstitucionSerializer(data=data)
@@ -75,9 +76,6 @@ def test_medicamento_serializer():
     assert json.dumps(serializer_item.data) == json.dumps(data), "data serializada no tiene el mismo orden"
     assert serialized_data.errors == {}, f"Errores: {serialized_data.errors}"
 
-
-
-
 @pytest.mark.django_db
 def test_item_serializer():
     from maestro.serializers import ItemSerializer
@@ -97,7 +95,6 @@ def test_item_serializer():
     serialized_data.is_valid()
     assert json.dumps(serializer_item.data) == json.dumps(data), "data serializada no tiene el mismo orden"
     assert serialized_data.errors == {}, f"Errores: {serialized_data.errors}"
-
 
 @pytest.mark.django_db
 def test_equipamiento_serializer():
@@ -122,7 +119,6 @@ def test_equipamiento_serializer():
     assert json.dumps(serializer_item.data) == json.dumps(data), "data serializada no tiene el mismo orden"
     assert serialized_data.errors == {}, f"Errores: {serialized_data.errors}"
 
-
 @pytest.mark.django_db
 def test_quiebre_serializer():
     from maestro.serializers import QuiebreSerializer
@@ -141,7 +137,6 @@ def test_quiebre_serializer():
     serializer_item = QuiebreSerializer(quiebre_existente)
 
     serialized_data = QuiebreSerializer(data=data)
-
 
     assert not serialized_data.is_valid(), f"Errores: {serialized_data.errors}"
 

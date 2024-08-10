@@ -11,6 +11,7 @@ class InstitucionSerializer(serializers.ModelSerializer):
             "titularidad",
             "num_camas_uti",
             "num_camas_uci",
+            "factor",
         ]
 
 
