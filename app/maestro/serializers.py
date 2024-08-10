@@ -1,7 +1,5 @@
 from rest_framework import serializers
-
-
-from .models import Institucion, Medicamento
+from .models import Institucion, Medicamento, Quiebre, Equipamiento, Item
 
 
 class InstitucionSerializer(serializers.ModelSerializer):
@@ -37,13 +35,30 @@ class MedicamentoSerializer(serializers.ModelSerializer):
         ]
 
 
-class ItemSerializer:
-    pass
+class ItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Item
+        fields = [
+            "nombre",
+            "tipo",
+        ]
 
 
-class EquipamientoSerializer:
-    pass
+class EquipamientoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Equipamiento
+        fields = [
+            "item",
+            "marca",
+            "modelo",
+        ]
 
 
-class QuiebreSerializer:
-    pass
+class QuiebreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Quiebre
+        fields = [
+            "institucion",
+            "medicamento",
+            "cantidad",
+        ]
