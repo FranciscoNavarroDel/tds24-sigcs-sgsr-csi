@@ -8,7 +8,6 @@ init:
 	pip install -r requirements.txt
 	rm -f db.sqlite3
 	make migrate
-	make migrations
 	make loaddata
 
 loaddata:
