@@ -1,6 +1,6 @@
 import pytest
 import json
-from maestro.models import Item, Equipamiento
+from maestro.models import Item, Equipamiento, Institucion, Medicamento, Quiebre
 
 
 @pytest.mark.django_db
@@ -49,7 +49,7 @@ def test_equipamiento_serializer():
         modelo="Dash 5000 prueba",
     )
 
-    data = {"id": equipamiento.id, "item": equipamiento.item.id, "marca": equipamiento.marca, "modelo": equipamiento.modelo}
+    data = {"item": equipamiento.item.id, "marca": equipamiento.marca, "modelo": equipamiento.modelo}
 
     serialized_data = EquipamientoSerializer(data=data)
     serializer_item = EquipamientoSerializer(equipamiento)
@@ -60,4 +60,28 @@ def test_equipamiento_serializer():
 
 @pytest.mark.django_db
 def test_quiebre_serializer():
-    from maestro.serializers import EquipamientoSerializer
+    from maestro.serializers import QuiebreSerializer
+
+    quiebre_existente = Quiebre.objects.all().first()
+
+    if quiebre_existente is None:
+        raise Exception("Quiebre existente sin datos")
+
+    data = {
+        "institucion": quiebre_existente.institucion.id,
+        "medicamento": quiebre_existente.medicamento.id,
+        "cantidad": quiebre_existente.cantidad
+    }
+
+    serializer_item = QuiebreSerializer(quiebre_existente)
+
+    serialized_data = QuiebreSerializer(data=data)
+
+
+    assert not serialized_data.is_valid(), f"Errores: {serialized_data.errors}"
+
+    assert serializer_item.data == data, (
+        f"Data serializada no coincide: "
+        f"expected {data} but got {serializer_item.data}"
+    )
+
